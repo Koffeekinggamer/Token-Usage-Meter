@@ -19,12 +19,13 @@ function frame(ts) {
   const dt = Math.min(0.05, (ts - lastTs) / 1000);
   lastTs = ts;
 
-  if (!window.tokenMeter?.stepNeedle || !window.tokenMeter?.drawMeterFace) {
+  if (!window.tokenMeter?.stepNeedle || !window.tokenMeter?.faceFrame) {
     requestAnimationFrame(frame);
     return;
   }
 
-  if (face) {
+  const draw = globalThis.MeterPaint?.drawMeterFace;
+  if (face && draw) {
     cursorNeedle = window.tokenMeter.stepNeedle(
       cursorNeedle,
       face.cursor.targetAngle,
@@ -39,7 +40,7 @@ function frame(ts) {
       cursor: cursorNeedle.angle,
       other: otherNeedle.angle,
     });
-    window.tokenMeter.drawMeterFace(ctx, paintFrame, {
+    draw(ctx, paintFrame, {
       width: canvas.width,
       height: canvas.height,
     });

@@ -44,7 +44,7 @@ function createWindow() {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
-      // preload requires lib modules (gauge, paint, face)
+      // preload requires lib modules (gauge, face); paint runs in renderer
       sandbox: false,
     },
   });

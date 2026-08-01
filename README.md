@@ -67,8 +67,8 @@ The app copies the DB to a temp file (avoids WAL locks), reads `cursorAuth/acces
 - **Reading** — `src/lib/reading.js` (signed-in account → plan usage)
 - **Meter state** — `src/lib/meter-state.js` (last-good reading + fault)
 - **Face DTO / copy** — `src/lib/face.js` + `src/lib/face-copy.js` (single IPC shape; Auto/API wording)
-- **Paint** — `src/lib/paint.js` (`drawMeterFace`); renderer only animates needles
-- **Physics** — `src/lib/gauge.js` `stepNeedle` via preload (no renderer fallback)
+- **Paint** — `src/renderer/paint.js` (`drawMeterFace` in the renderer; canvas ctx cannot cross contextBridge)
+- **Physics** — `src/lib/gauge.js` `stepNeedle` via preload (plain data only)
 - **Watcher** — `src/lib/watcher.js` (`syncMeterWithCursor` — start on open, stop on close)
 
 ## Domain glossary

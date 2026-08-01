@@ -2,7 +2,6 @@
 
 const { contextBridge, ipcRenderer } = require("electron");
 const { stepNeedle } = require("./lib/gauge");
-const { drawMeterFace } = require("./lib/paint");
 const { faceFrame } = require("./lib/face");
 
 contextBridge.exposeInMainWorld("tokenMeter", {
@@ -19,9 +18,6 @@ contextBridge.exposeInMainWorld("tokenMeter", {
   },
   stepNeedle(state, targetAngle, dtSeconds) {
     return stepNeedle(state, targetAngle, dtSeconds);
-  },
-  drawMeterFace(ctx, frame, size) {
-    return drawMeterFace(ctx, frame, size);
   },
   faceFrame(face, angles) {
     return faceFrame(face, angles);
