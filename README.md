@@ -6,6 +6,7 @@ Always-on-top analog needle overlay for your Cursor plan usage.
 
 - Reads the signed-in account from Cursor’s local `state.vscdb` (no manual token paste)
 - Polls `https://cursor.com/api/usage-summary`
+- Dual needles: **blue = Cursor/Auto models**, **dark = other/API models**
 - Frameless, always-on-top gauge you can drag; double-click to refresh
 - Optional Watcher auto-launches the Meter whenever Cursor is open
 

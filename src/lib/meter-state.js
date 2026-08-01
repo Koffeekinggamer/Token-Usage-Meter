@@ -74,30 +74,37 @@ function faultSubtitle(fault) {
 /**
  * Build the face view the Meter renderer paints.
  * @param {MeterState} state
- * @param {{ angle: number, velocity: number }} [needle]
  */
-function buildFaceView(state, needle = { angle: -120, velocity: 0 }) {
+function buildFaceView(state) {
   if (!state.reading) {
     return {
+      cursorTargetAngle: -120,
+      otherTargetAngle: -120,
       targetAngle: -120,
+      cursorColor: "#c23b22",
+      otherColor: "#1c1917",
       color: "#c23b22",
+      otherArcColor: "#c23b22",
       label: "!",
       subtitle: faultSubtitle(state.fault),
       account: "",
       showingLastGood: false,
       hasFault: true,
       percent: 0,
+      cursorPercent: 0,
+      otherPercent: 0,
     };
   }
 
-  const model = buildGaugeModel(state.reading, needle);
-  const subtitle = state.showingLastGood
-    ? `${model.subtitle} · held`
-    : model.subtitle;
+  const model = buildGaugeModel(state.reading);
+  const parts = [];
+  if (state.reading.membershipType) parts.push(state.reading.membershipType);
+  parts.push("cursor · other");
+  if (state.showingLastGood) parts.push("held");
 
   return {
     ...model,
-    subtitle,
+    subtitle: parts.join(" · "),
     showingLastGood: state.showingLastGood,
     hasFault: Boolean(state.fault),
   };

@@ -7,14 +7,15 @@ const {
   reduceMeterState,
   buildFaceView,
 } = require("../src/lib/meter-state");
+const { CURSOR_NEEDLE_COLOR } = require("../src/lib/gauge");
 
 const reading = {
   percent: 42,
   used: 42,
   limit: 100,
   remaining: 58,
-  autoPercentUsed: null,
-  apiPercentUsed: null,
+  autoPercentUsed: 30,
+  apiPercentUsed: 55,
   onDemandUsed: null,
   membershipType: "pro",
   isUnlimited: false,
@@ -63,22 +64,26 @@ describe("reduceMeterState", () => {
       fault: { kind: "http", message: "boom" },
     });
     const face = buildFaceView(held);
-    assert.equal(face.label, "42%");
+    assert.equal(face.label, "30 · 55");
     assert.match(face.subtitle, /held/);
     assert.equal(face.hasFault, true);
-    assert.notEqual(face.targetAngle, -120);
+    assert.notEqual(face.cursorTargetAngle, -120);
   });
 });
 
 describe("buildFaceView", () => {
-  it("uses shared percentToNeedleAngle for 100%", () => {
+  it("maps dual needles from auto and api percents", () => {
     const face = buildFaceView({
-      reading: { ...reading, percent: 100 },
+      reading,
       fault: null,
       showingLastGood: false,
     });
-    assert.equal(face.targetAngle, 120);
-    assert.equal(face.label, "100%");
+    assert.equal(face.label, "30 · 55");
+    assert.equal(face.cursorPercent, 30);
+    assert.equal(face.otherPercent, 55);
+    assert.equal(face.cursorColor, CURSOR_NEEDLE_COLOR);
+    assert.equal(face.cursorTargetAngle, -120 + (240 * 30) / 100);
+    assert.equal(face.otherTargetAngle, -120 + (240 * 55) / 100);
   });
 
   it("renders cold fault without a reading", () => {
@@ -89,6 +94,7 @@ describe("buildFaceView", () => {
     });
     assert.equal(face.label, "!");
     assert.equal(face.subtitle, "Sign in");
-    assert.equal(face.targetAngle, -120);
+    assert.equal(face.cursorTargetAngle, -120);
+    assert.equal(face.otherTargetAngle, -120);
   });
 });

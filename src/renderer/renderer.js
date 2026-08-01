@@ -5,11 +5,61 @@ const ctx = canvas.getContext("2d");
 const labelEl = document.getElementById("label");
 const subtitleEl = document.getElementById("subtitle");
 
-let needle = { angle: -120, velocity: 0 };
-let targetAngle = -120;
-let accent = "#2f6f4e";
+let cursorNeedle = { angle: -120, velocity: 0 };
+let otherNeedle = { angle: -120, velocity: 0 };
+let cursorTarget = -120;
+let otherTarget = -120;
+let cursorColor = "#2563eb";
+let otherColor = "#1c1917";
+let otherArcColor = "#2f6f4e";
 let lastTs = performance.now();
 let hasFault = false;
+
+function step(state, target, dt) {
+  if (window.tokenMeter?.stepNeedle) {
+    return window.tokenMeter.stepNeedle(state, target, dt);
+  }
+  const stiffness = 48;
+  const damping = 10;
+  const displacement = target - state.angle;
+  const acceleration = stiffness * displacement - damping * state.velocity;
+  return {
+    velocity: state.velocity + acceleration * dt,
+    angle: state.angle + (state.velocity + acceleration * dt) * dt,
+  };
+}
+
+function drawNeedle(cx, cy, angleDeg, color, tipR, widthScale) {
+  const needleRad = (angleDeg * Math.PI) / 180 - Math.PI / 2;
+  const backR = 12 * widthScale;
+  const half = 3.2 * widthScale;
+  const tipX = cx + Math.cos(needleRad) * tipR;
+  const tipY = cy + Math.sin(needleRad) * tipR;
+  const left = needleRad + Math.PI / 2;
+  const right = needleRad - Math.PI / 2;
+  ctx.beginPath();
+  ctx.moveTo(tipX, tipY);
+  ctx.lineTo(cx + Math.cos(left) * half, cy + Math.sin(left) * half);
+  ctx.lineTo(
+    cx + Math.cos(needleRad + Math.PI) * backR,
+    cy + Math.sin(needleRad + Math.PI) * backR
+  );
+  ctx.lineTo(cx + Math.cos(right) * half, cy + Math.sin(right) * half);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+  return needleRad;
+}
+
+function drawArc(cx, cy, r, start, angleDeg, color, width) {
+  const needleRad = (angleDeg * Math.PI) / 180 - Math.PI / 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, start, needleRad);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.lineCap = "round";
+  ctx.stroke();
+}
 
 function drawFace() {
   const w = canvas.width;
@@ -34,24 +84,29 @@ function drawFace() {
 
   const start = (-120 * Math.PI) / 180 - Math.PI / 2;
   const end = (120 * Math.PI) / 180 - Math.PI / 2;
+
+  // Outer track — other models
   ctx.beginPath();
   ctx.arc(cx, cy, r, start, end);
-  ctx.strokeStyle = "rgba(68, 64, 60, 0.18)";
-  ctx.lineWidth = 10;
+  ctx.strokeStyle = "rgba(68, 64, 60, 0.16)";
+  ctx.lineWidth = 9;
   ctx.lineCap = "round";
   ctx.stroke();
+  drawArc(cx, cy, r, start, otherNeedle.angle, otherArcColor, 9);
 
-  const needleRad = (needle.angle * Math.PI) / 180 - Math.PI / 2;
+  // Inner track — cursor models (blue)
   ctx.beginPath();
-  ctx.arc(cx, cy, r, start, needleRad);
-  ctx.strokeStyle = accent;
-  ctx.lineWidth = 10;
+  ctx.arc(cx, cy, r - 14, start, end);
+  ctx.strokeStyle = "rgba(37, 99, 235, 0.18)";
+  ctx.lineWidth = 7;
+  ctx.lineCap = "round";
   ctx.stroke();
+  drawArc(cx, cy, r - 14, start, cursorNeedle.angle, cursorColor, 7);
 
   for (let p = 0; p <= 100; p += 10) {
     const a = ((-120 + (240 * p) / 100) * Math.PI) / 180 - Math.PI / 2;
     const major = p % 50 === 0;
-    const inner = r - (major ? 14 : 8);
+    const inner = r - (major ? 16 : 10);
     const outer = r + 2;
     ctx.beginPath();
     ctx.moveTo(cx + Math.cos(a) * inner, cy + Math.sin(a) * inner);
@@ -61,30 +116,16 @@ function drawFace() {
     ctx.stroke();
   }
 
-  const tipR = r - 6;
-  const backR = 14;
-  const tipX = cx + Math.cos(needleRad) * tipR;
-  const tipY = cy + Math.sin(needleRad) * tipR;
-  const left = needleRad + Math.PI / 2;
-  const right = needleRad - Math.PI / 2;
-  ctx.beginPath();
-  ctx.moveTo(tipX, tipY);
-  ctx.lineTo(cx + Math.cos(left) * 4, cy + Math.sin(left) * 4);
-  ctx.lineTo(
-    cx + Math.cos(needleRad + Math.PI) * backR,
-    cy + Math.sin(needleRad + Math.PI) * backR
-  );
-  ctx.lineTo(cx + Math.cos(right) * 4, cy + Math.sin(right) * 4);
-  ctx.closePath();
-  ctx.fillStyle = "#1c1917";
-  ctx.fill();
+  // Draw other (dark) under, cursor (blue) on top
+  drawNeedle(cx, cy, otherNeedle.angle, otherColor, r - 8, 1);
+  drawNeedle(cx, cy, cursorNeedle.angle, cursorColor, r - 22, 0.85);
 
   ctx.beginPath();
-  ctx.arc(cx, cy, 7, 0, Math.PI * 2);
-  ctx.fillStyle = accent;
+  ctx.arc(cx, cy, 8, 0, Math.PI * 2);
+  ctx.fillStyle = cursorColor;
   ctx.fill();
   ctx.beginPath();
-  ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+  ctx.arc(cx, cy, 3.5, 0, Math.PI * 2);
   ctx.fillStyle = "#faf7f1";
   ctx.fill();
 
@@ -99,18 +140,8 @@ function drawFace() {
 function frame(ts) {
   const dt = Math.min(0.05, (ts - lastTs) / 1000);
   lastTs = ts;
-  if (window.tokenMeter?.stepNeedle) {
-    needle = window.tokenMeter.stepNeedle(needle, targetAngle, dt);
-  } else {
-    const stiffness = 48;
-    const damping = 10;
-    const displacement = targetAngle - needle.angle;
-    const acceleration = stiffness * displacement - damping * needle.velocity;
-    needle = {
-      velocity: needle.velocity + acceleration * dt,
-      angle: needle.angle + (needle.velocity + acceleration * dt) * dt,
-    };
-  }
+  cursorNeedle = step(cursorNeedle, cursorTarget, dt);
+  otherNeedle = step(otherNeedle, otherTarget, dt);
   drawFace();
   requestAnimationFrame(frame);
 }
@@ -118,9 +149,18 @@ function frame(ts) {
 function applyFace(payload) {
   if (!payload) return;
   labelEl.textContent = payload.label ?? "—";
-  subtitleEl.textContent = payload.subtitle ?? "Cursor";
-  accent = payload.color ?? "#2f6f4e";
-  targetAngle = Number.isFinite(payload.targetAngle) ? payload.targetAngle : -120;
+  subtitleEl.textContent = payload.subtitle ?? "cursor · other";
+  cursorColor = payload.cursorColor ?? payload.color ?? "#2563eb";
+  otherColor = payload.otherColor ?? "#1c1917";
+  otherArcColor = payload.otherArcColor ?? "#2f6f4e";
+  cursorTarget = Number.isFinite(payload.cursorTargetAngle)
+    ? payload.cursorTargetAngle
+    : Number.isFinite(payload.targetAngle)
+      ? payload.targetAngle
+      : -120;
+  otherTarget = Number.isFinite(payload.otherTargetAngle)
+    ? payload.otherTargetAngle
+    : -120;
   hasFault = Boolean(payload.hasFault);
 }
 

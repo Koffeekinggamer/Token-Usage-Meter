@@ -1,15 +1,23 @@
 # Token Usage Meter
 
-An always-on-top overlay that shows the signed-in Cursor plan's included usage as an analog needle.
+An always-on-top overlay that shows the signed-in Cursor plan's included usage as a dual-needle analog dial.
 
 ## Language
 
 **Meter**:
-The always-on-top overlay window that displays plan usage as an analog needle.
+The always-on-top overlay window that displays plan usage as two analog needles.
 _Avoid_: Widget, HUD, dashboard, gauge app
 
+**Cursor models usage**:
+The Auto / Cursor-model share of included plan allowance (`autoPercentUsed`), shown on the blue needle.
+_Avoid_: Total usage, API usage
+
+**Other models usage**:
+The named / API-model share of included plan allowance (`apiPercentUsed`), shown on the dark needle.
+_Avoid_: On-demand, team pool
+
 **Plan usage**:
-The share of the signed-in account's included Cursor plan allowance already consumed in the current billing cycle, expressed as a percent.
+The share of the signed-in account's included Cursor plan allowance already consumed in the current billing cycle, expressed as a percent (and as the two needle percents above).
 _Avoid_: Token count, spend, on-demand, team pool, request count
 
 **Reading**:

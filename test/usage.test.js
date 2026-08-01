@@ -100,13 +100,23 @@ describe("needle math", () => {
     assert.equal(colorForPercent(99), "#c23b22");
   });
 
-  it("builds a gauge model", () => {
+  it("builds a dual-needle gauge model", () => {
+    const { CURSOR_NEEDLE_COLOR } = require("../src/lib/gauge");
     const model = buildGaugeModel(
-      { percent: 42, membershipType: "pro", email: "a@b.c" },
-      { angle: -10, velocity: 0 }
+      {
+        percent: 42,
+        autoPercentUsed: 30,
+        apiPercentUsed: 55,
+        membershipType: "pro",
+        email: "a@b.c",
+      },
+      { cursor: { angle: -10, velocity: 0 } }
     );
-    assert.equal(model.label, "42%");
-    assert.equal(model.subtitle, "pro");
+    assert.equal(model.label, "30 · 55");
+    assert.equal(model.cursorColor, CURSOR_NEEDLE_COLOR);
+    assert.equal(model.cursorPercent, 30);
+    assert.equal(model.otherPercent, 55);
     assert.equal(model.account, "a@b.c");
   });
 });
+
