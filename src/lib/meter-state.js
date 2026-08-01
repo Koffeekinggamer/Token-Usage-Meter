@@ -86,6 +86,10 @@ function buildFaceView(state) {
       color: "#c23b22",
       otherArcColor: "#c23b22",
       label: "!",
+      cursorLabel: "!",
+      otherLabel: "!",
+      legend: "",
+      plan: faultSubtitle(state.fault),
       subtitle: faultSubtitle(state.fault),
       account: "",
       showingLastGood: false,
@@ -97,14 +101,14 @@ function buildFaceView(state) {
   }
 
   const model = buildGaugeModel(state.reading);
-  const parts = [];
-  if (state.reading.membershipType) parts.push(state.reading.membershipType);
-  parts.push("cursor · other");
-  if (state.showingLastGood) parts.push("held");
+  const plan = state.showingLastGood
+    ? `${model.plan || "Plan"} · held`
+    : model.plan || "";
 
   return {
     ...model,
-    subtitle: parts.join(" · "),
+    plan,
+    subtitle: plan || model.legend,
     showingLastGood: state.showingLastGood,
     hasFault: Boolean(state.fault),
   };

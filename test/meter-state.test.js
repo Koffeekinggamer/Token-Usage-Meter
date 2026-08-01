@@ -64,8 +64,9 @@ describe("reduceMeterState", () => {
       fault: { kind: "http", message: "boom" },
     });
     const face = buildFaceView(held);
-    assert.equal(face.label, "30 · 55");
-    assert.match(face.subtitle, /held/);
+    assert.equal(face.cursorLabel, "30");
+    assert.equal(face.otherLabel, "55");
+    assert.match(face.plan, /held/);
     assert.equal(face.hasFault, true);
     assert.notEqual(face.cursorTargetAngle, -120);
   });
@@ -78,7 +79,10 @@ describe("buildFaceView", () => {
       fault: null,
       showingLastGood: false,
     });
-    assert.equal(face.label, "30 · 55");
+    assert.equal(face.cursorLabel, "30");
+    assert.equal(face.otherLabel, "55");
+    assert.equal(face.legend, "Auto · API");
+    assert.equal(face.plan, "pro");
     assert.equal(face.cursorPercent, 30);
     assert.equal(face.otherPercent, 55);
     assert.equal(face.cursorColor, CURSOR_NEEDLE_COLOR);
@@ -92,8 +96,8 @@ describe("buildFaceView", () => {
       fault: { kind: "unsigned-in", message: "x" },
       showingLastGood: false,
     });
-    assert.equal(face.label, "!");
-    assert.equal(face.subtitle, "Sign in");
+    assert.equal(face.cursorLabel, "!");
+    assert.equal(face.plan, "Sign in");
     assert.equal(face.cursorTargetAngle, -120);
     assert.equal(face.otherTargetAngle, -120);
   });

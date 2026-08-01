@@ -11,11 +11,20 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div id="shell" title="Blue = Cursor/Auto · Dark = other/API · drag to move · double-click refresh">
+    <div id="shell" title="Blue Auto = Cursor models · Dark API = other models · drag · double-click refresh">
       <canvas id="gauge" width="200" height="200"></canvas>
       <div id="meta">
-        <div id="label">—</div>
-        <div id="subtitle">cursor · other</div>
+        <div id="label" aria-live="polite">
+          <span id="cursorPct" class="pct cursor">—</span>
+          <span class="sep">·</span>
+          <span id="otherPct" class="pct other">—</span>
+        </div>
+        <div id="legend">
+          <span class="leg cursor">Auto</span>
+          <span class="sep">·</span>
+          <span class="leg other">API</span>
+        </div>
+        <div id="plan"></div>
       </div>
     </div>
     <script src="renderer.js"></script>

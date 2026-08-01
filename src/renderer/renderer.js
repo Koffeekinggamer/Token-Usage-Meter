@@ -2,8 +2,10 @@
 
 const canvas = document.getElementById("gauge");
 const ctx = canvas.getContext("2d");
-const labelEl = document.getElementById("label");
-const subtitleEl = document.getElementById("subtitle");
+const cursorPctEl = document.getElementById("cursorPct");
+const otherPctEl = document.getElementById("otherPct");
+const planEl = document.getElementById("plan");
+const legendEl = document.getElementById("legend");
 
 let cursorNeedle = { angle: -120, velocity: 0 };
 let otherNeedle = { angle: -120, velocity: 0 };
@@ -148,8 +150,19 @@ function frame(ts) {
 
 function applyFace(payload) {
   if (!payload) return;
-  labelEl.textContent = payload.label ?? "—";
-  subtitleEl.textContent = payload.subtitle ?? "cursor · other";
+
+  if (payload.hasFault && !payload.showingLastGood) {
+    cursorPctEl.textContent = "!";
+    otherPctEl.textContent = "!";
+    legendEl.hidden = true;
+    planEl.textContent = payload.plan || payload.subtitle || "Fault";
+  } else {
+    cursorPctEl.textContent = payload.cursorLabel ?? "—";
+    otherPctEl.textContent = payload.otherLabel ?? "—";
+    legendEl.hidden = false;
+    planEl.textContent = payload.plan || "";
+  }
+
   cursorColor = payload.cursorColor ?? payload.color ?? "#2563eb";
   otherColor = payload.otherColor ?? "#1c1917";
   otherArcColor = payload.otherArcColor ?? "#2f6f4e";

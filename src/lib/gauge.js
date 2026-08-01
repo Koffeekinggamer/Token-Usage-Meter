@@ -97,10 +97,17 @@ function buildGaugeModel(usage, needles = {}) {
       color: CURSOR_NEEDLE_COLOR,
       otherArcColor: "#2f6f4e",
       label: "∞",
+      cursorLabel: "∞",
+      otherLabel: "∞",
+      legend: "Auto · API",
+      plan: "Unlimited",
       subtitle: "Unlimited",
       account: usage.email || "",
     };
   }
+
+  const cursorRound = Math.round(cursorPercent);
+  const otherRound = Math.round(otherPercent);
 
   return {
     percent: Number(usage.percent) || 0,
@@ -117,8 +124,12 @@ function buildGaugeModel(usage, needles = {}) {
     otherColor: OTHER_NEEDLE_COLOR,
     color: CURSOR_NEEDLE_COLOR,
     otherArcColor: colorForPercent(otherPercent),
-    label: `${Math.round(cursorPercent)} · ${Math.round(otherPercent)}`,
-    subtitle: usage.membershipType || "cursor · other",
+    label: `${cursorRound} · ${otherRound}`,
+    cursorLabel: String(cursorRound),
+    otherLabel: String(otherRound),
+    legend: "Auto · API",
+    plan: usage.membershipType || "",
+    subtitle: usage.membershipType || "Auto · API",
     account: usage.email || "",
   };
 }

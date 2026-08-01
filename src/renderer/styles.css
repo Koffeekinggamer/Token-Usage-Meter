@@ -29,26 +29,66 @@ body:active {
 
 #meta {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 118px;
+  left: 18px;
+  right: 18px;
+  top: 108px;
   text-align: center;
   pointer-events: none;
 }
 
 #label {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
-  letter-spacing: 0.02em;
-  color: #1c1917;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
-#subtitle {
-  margin-top: 2px;
-  font-size: 10px;
+#label .sep {
+  color: #a8a29e;
+  margin: 0 0.12em;
   font-weight: 600;
-  letter-spacing: 0.08em;
+}
+
+#label .pct.cursor {
+  color: #2563eb;
+}
+
+#label .pct.other {
+  color: #1c1917;
+}
+
+#legend {
+  margin-top: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #57534e;
+  line-height: 1.2;
+}
+
+#legend .sep {
+  color: #a8a29e;
+  margin: 0 0.25em;
+}
+
+#legend .leg.cursor {
+  color: #2563eb;
+}
+
+#legend .leg.other {
+  color: #44403c;
+}
+
+#plan {
+  margin-top: 2px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #78716c;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
