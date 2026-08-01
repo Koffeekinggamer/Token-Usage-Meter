@@ -2,12 +2,18 @@
 
 const path = require("path");
 const { app, BrowserWindow, ipcMain, screen } = require("electron");
-const { readCursorAccount } = require("./lib/auth");
-const { fetchUsageSummary } = require("./lib/usage");
+const { takeReading } = require("./lib/reading");
+const {
+  emptyMeterState,
+  reduceMeterState,
+  buildFaceView,
+} = require("./lib/meter-state");
 
 const POLL_MS = Number(process.env.TUM_POLL_MS) || 60_000;
 let mainWindow = null;
 let pollTimer = null;
+/** @type {import('./lib/meter-state').MeterState} */
+let meterState = emptyMeterState();
 
 function createWindow() {
   const display = screen.getPrimaryDisplay();
@@ -32,7 +38,8 @@ function createWindow() {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: true,
+      // preload requires ./lib/gauge for shared needle physics
+      sandbox: false,
     },
   });
 
@@ -49,25 +56,22 @@ function createWindow() {
   });
 }
 
+function publishFace() {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  const face = buildFaceView(meterState);
+  mainWindow.webContents.send("meter:face", {
+    ok: Boolean(meterState.reading) && !meterState.fault,
+    ...face,
+    faultKind: meterState.fault?.kind ?? null,
+  });
+}
+
 async function refreshUsage() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
 
-  try {
-    const account = await readCursorAccount();
-    const usage = await fetchUsageSummary({
-      sessionCookie: account.sessionCookie,
-    });
-    mainWindow.webContents.send("usage:update", {
-      ok: true,
-      email: account.email,
-      ...usage,
-    });
-  } catch (err) {
-    mainWindow.webContents.send("usage:update", {
-      ok: false,
-      error: err instanceof Error ? err.message : String(err),
-    });
-  }
+  const event = await takeReading();
+  meterState = reduceMeterState(meterState, event);
+  publishFace();
 }
 
 function startPolling() {

@@ -2,12 +2,13 @@
 
 /**
  * Keep the Token Usage Meter running whenever Cursor is open.
- * Intended for LaunchAgents / scheduled runners.
+ * Policy lives in src/lib/watcher.js; this file is the OS adapter.
  */
 
 const { spawn, execFileSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
+const { ensureMeterRunning } = require("../src/lib/watcher");
 
 const ROOT = path.join(__dirname, "..");
 const INTERVAL_MS = Number(process.env.TUM_WATCH_MS) || 5000;
@@ -33,7 +34,7 @@ function isCursorRunning() {
   }
 }
 
-function meterPidAlive(pid) {
+function isMeterAlive(pid) {
   try {
     process.kill(pid, 0);
     return true;
@@ -71,12 +72,14 @@ function startMeter() {
 }
 
 function tick() {
-  const cursorUp = isCursorRunning();
-  const pid = readMeterPid();
-  const meterUp = pid != null && meterPidAlive(pid);
-
-  if (cursorUp && !meterUp) {
-    startMeter();
+  const result = ensureMeterRunning({
+    isCursorRunning,
+    readMeterPid,
+    isMeterAlive,
+    startMeter,
+  });
+  if (result === "started") {
+    // logged inside startMeter
   }
 }
 

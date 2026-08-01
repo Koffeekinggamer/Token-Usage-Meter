@@ -44,3 +44,10 @@ The app copies the DB to a temp file (avoids WAL locks), reads `cursorAuth/acces
 - Drag the dial to reposition
 - Double-click to force a refresh
 - Poll interval: `TUM_POLL_MS` (default `60000`)
+
+## Reliability
+
+- **Reading** production lives in `src/lib/reading.js` (signed-in account → plan usage)
+- **Last-good reading** + **fault state** are reduced in `src/lib/meter-state.js` — a failed refresh keeps the previous needle position and marks a fault
+- Needle physics are shared via `src/lib/gauge.js` (preload → renderer)
+- Watcher policy (`ensureMeterRunning`) is in `src/lib/watcher.js` so it can’t double-launch
