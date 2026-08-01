@@ -2,14 +2,24 @@
 
 Always-on-top analog needle overlay for your Cursor plan usage.
 
+**Repo:** https://github.com/Koffeekinggamer/Token-Usage-Meter
+
 - Reads the signed-in account from Cursor’s local `state.vscdb` (no manual token paste)
 - Polls `https://cursor.com/api/usage-summary`
 - Frameless, always-on-top gauge you can drag; double-click to refresh
-- Optional watcher that auto-launches the meter whenever Cursor is open
+- Optional Watcher auto-launches the Meter whenever Cursor is open
 
-## Setup
+## Requirements
+
+- Node.js 18+
+- Cursor installed and signed in
+- macOS recommended for auto-launch (Linux autostart supported; Windows: run the Watcher manually)
+
+## Install (other machines / other users)
 
 ```bash
+git clone https://github.com/Koffeekinggamer/Token-Usage-Meter.git
+cd Token-Usage-Meter
 npm install
 npm test
 npm start
@@ -25,6 +35,12 @@ This installs a macOS LaunchAgent (or Linux autostart entry) that runs `scripts/
 
 ```bash
 npm run uninstall-autolaunch
+```
+
+On Windows, keep the Watcher running in a terminal:
+
+```bash
+npm run watch-cursor
 ```
 
 ## How auth works
@@ -51,3 +67,7 @@ The app copies the DB to a temp file (avoids WAL locks), reads `cursorAuth/acces
 - **Last-good reading** + **fault state** are reduced in `src/lib/meter-state.js` — a failed refresh keeps the previous needle position and marks a fault
 - Needle physics are shared via `src/lib/gauge.js` (preload → renderer)
 - Watcher policy (`ensureMeterRunning`) is in `src/lib/watcher.js` so it can’t double-launch
+
+## Domain glossary
+
+See [`CONTEXT.md`](./CONTEXT.md) for Meter / Reading / Fault vocabulary used by agents and contributors.
