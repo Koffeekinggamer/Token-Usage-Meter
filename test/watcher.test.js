@@ -9,8 +9,7 @@ describe("ensureMeterRunning", () => {
     let started = 0;
     const result = ensureMeterRunning({
       isCursorRunning: () => false,
-      readMeterPid: () => null,
-      isMeterAlive: () => false,
+      isMeterRunning: () => false,
       startMeter: () => {
         started += 1;
       },
@@ -23,8 +22,7 @@ describe("ensureMeterRunning", () => {
     let started = 0;
     const result = ensureMeterRunning({
       isCursorRunning: () => true,
-      readMeterPid: () => null,
-      isMeterAlive: () => false,
+      isMeterRunning: () => false,
       startMeter: () => {
         started += 1;
       },
@@ -33,31 +31,16 @@ describe("ensureMeterRunning", () => {
     assert.equal(started, 1);
   });
 
-  it("does not double-launch when Meter pid is alive", () => {
+  it("does not double-launch when Meter is already running", () => {
     let started = 0;
     const result = ensureMeterRunning({
       isCursorRunning: () => true,
-      readMeterPid: () => 1234,
-      isMeterAlive: (pid) => pid === 1234,
+      isMeterRunning: () => true,
       startMeter: () => {
         started += 1;
       },
     });
     assert.equal(result, "already-running");
     assert.equal(started, 0);
-  });
-
-  it("restarts when pid file is stale", () => {
-    let started = 0;
-    const result = ensureMeterRunning({
-      isCursorRunning: () => true,
-      readMeterPid: () => 999,
-      isMeterAlive: () => false,
-      startMeter: () => {
-        started += 1;
-      },
-    });
-    assert.equal(result, "started");
-    assert.equal(started, 1);
   });
 });

@@ -6,8 +6,7 @@
  *
  * @param {{
  *   isCursorRunning: () => boolean,
- *   readMeterPid: () => number|null,
- *   isMeterAlive: (pid: number) => boolean,
+ *   isMeterRunning: () => boolean,
  *   startMeter: () => void,
  * }} adapters
  * @returns {'started'|'already-running'|'cursor-down'}
@@ -17,8 +16,7 @@ function ensureMeterRunning(adapters) {
     return "cursor-down";
   }
 
-  const pid = adapters.readMeterPid();
-  if (pid != null && adapters.isMeterAlive(pid)) {
+  if (adapters.isMeterRunning()) {
     return "already-running";
   }
 

@@ -9,57 +9,94 @@ const { spawn, execFileSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 const { ensureMeterRunning } = require("../src/lib/watcher");
+const {
+  defaultPidPath,
+  readPidFile,
+  isPidAlive,
+} = require("../src/lib/pidfile");
 
 const ROOT = path.join(__dirname, "..");
 const INTERVAL_MS = Number(process.env.TUM_WATCH_MS) || 5000;
-const electronBin = path.join(ROOT, "node_modules", ".bin", "electron");
-const pidFile = path.join(ROOT, ".meter.pid");
+const START_COOLDOWN_MS = Number(process.env.TUM_START_COOLDOWN_MS) || 15_000;
+const pidFile = defaultPidPath(ROOT);
+
+/** Real Electron binary (not the node_modules/.bin shim that exits immediately). */
+function resolveElectronBinary() {
+  // require('electron') returns the binary path when running under Node.
+  const fromPackage = require("electron");
+  if (typeof fromPackage === "string" && fs.existsSync(fromPackage)) {
+    return fromPackage;
+  }
+  const pathTxt = path.join(ROOT, "node_modules", "electron", "path.txt");
+  if (fs.existsSync(pathTxt)) {
+    const rel = fs.readFileSync(pathTxt, "utf8").trim();
+    const candidate = path.join(ROOT, "node_modules", "electron", "dist", rel);
+    if (fs.existsSync(candidate)) return candidate;
+  }
+  throw new Error("Electron binary not found — run npm install");
+}
 
 function isCursorRunning() {
+  // Under App Translocation, `pgrep -x Cursor` often misses the main process.
+  // System Events reports the app name reliably.
   try {
-    if (process.platform === "darwin") {
-      execFileSync("pgrep", ["-x", "Cursor"], { stdio: "ignore" });
+    const out = execFileSync(
+      "osascript",
+      [
+        "-e",
+        'tell application "System Events" to (name of processes) contains "Cursor"',
+      ],
+      { encoding: "utf8" }
+    ).trim();
+    return out === "true";
+  } catch {
+    try {
+      const out = execFileSync("ps", ["-axo", "args="], { encoding: "utf8" });
+      return out
+        .split("\n")
+        .some(
+          (line) =>
+            line.includes("Cursor.app/Contents/MacOS/Cursor") &&
+            !line.includes("Cursor Helper")
+        );
+    } catch {
+      return false;
+    }
+  }
+}
+
+function isMeterRunning() {
+  const pid = readPidFile(pidFile);
+  if (pid != null && isPidAlive(pid)) return true;
+
+  // Fallback: Electron started for this project (env marker in argv/environ is
+  // not always visible; match the project path in the process list).
+  try {
+    const out = execFileSync("pgrep", ["-fl", "Electron|electron"], {
+      encoding: "utf8",
+    });
+    if (out.includes(ROOT) && /TUM_METER|Token Usage Meter/.test(out)) {
       return true;
     }
-    if (process.platform === "win32") {
-      const out = execFileSync("tasklist", ["/FI", "IMAGENAME eq Cursor.exe"], {
-        encoding: "utf8",
-      });
-      return /Cursor\.exe/i.test(out);
-    }
-    execFileSync("pgrep", ["-f", "cursor"], { stdio: "ignore" });
-    return true;
   } catch {
-    return false;
+    // none
   }
+  return false;
 }
 
-function isMeterAlive(pid) {
-  try {
-    process.kill(pid, 0);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function readMeterPid() {
-  try {
-    const raw = fs.readFileSync(pidFile, "utf8").trim();
-    const pid = Number(raw);
-    return Number.isFinite(pid) ? pid : null;
-  } catch {
-    return null;
-  }
-}
+let lastStartAt = 0;
 
 function startMeter() {
-  if (!fs.existsSync(electronBin)) {
-    console.error("electron not installed — run npm install in", ROOT);
+  const now = Date.now();
+  if (now - lastStartAt < START_COOLDOWN_MS) {
     return;
   }
-  const env = { ...process.env };
+  lastStartAt = now;
+
+  const electronBin = resolveElectronBinary();
+  const env = { ...process.env, TUM_METER: "1" };
   delete env.ELECTRON_RUN_AS_NODE;
+
   const child = spawn(electronBin, ["."], {
     cwd: ROOT,
     detached: true,
@@ -67,19 +104,18 @@ function startMeter() {
     env,
   });
   child.unref();
-  fs.writeFileSync(pidFile, String(child.pid));
-  console.log(`started Token Usage Meter pid=${child.pid}`);
+  // Authoritative pid is written by the Meter itself in main.js.
+  console.log(`spawned Electron for Token Usage Meter (launcher pid=${child.pid})`);
 }
 
 function tick() {
   const result = ensureMeterRunning({
     isCursorRunning,
-    readMeterPid,
-    isMeterAlive,
+    isMeterRunning,
     startMeter,
   });
   if (result === "started") {
-    // logged inside startMeter
+    console.log("ensureMeterRunning → started");
   }
 }
 

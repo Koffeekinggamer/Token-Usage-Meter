@@ -21,7 +21,7 @@ npm start
 npm run install-autolaunch
 ```
 
-This installs a macOS LaunchAgent (or Linux autostart entry) that runs `scripts/watch-cursor.js`. The watcher starts the overlay when the Cursor process is running.
+This installs a macOS LaunchAgent (or Linux autostart entry) that runs `scripts/watch-cursor.js`. The Watcher detects Cursor via System Events, starts the real Electron binary (not the npm shim), and the Meter writes `.meter.pid` so it won’t double-launch.
 
 ```bash
 npm run uninstall-autolaunch

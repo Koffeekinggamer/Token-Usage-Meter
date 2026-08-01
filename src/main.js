@@ -8,8 +8,14 @@ const {
   reduceMeterState,
   buildFaceView,
 } = require("./lib/meter-state");
+const {
+  defaultPidPath,
+  writePidFile,
+  clearPidFile,
+} = require("./lib/pidfile");
 
 const POLL_MS = Number(process.env.TUM_POLL_MS) || 60_000;
+const pidFile = defaultPidPath(path.join(__dirname, ".."));
 let mainWindow = null;
 let pollTimer = null;
 /** @type {import('./lib/meter-state').MeterState} */
@@ -81,6 +87,7 @@ function startPolling() {
 }
 
 app.whenReady().then(() => {
+  writePidFile(pidFile, process.pid);
   createWindow();
   startPolling();
 
@@ -90,6 +97,10 @@ app.whenReady().then(() => {
       startPolling();
     }
   });
+});
+
+app.on("will-quit", () => {
+  clearPidFile(pidFile);
 });
 
 app.on("window-all-closed", () => {
