@@ -32,7 +32,7 @@ npm start
 npm run install-autolaunch
 ```
 
-This installs a macOS LaunchAgent (or Linux autostart entry) that runs `scripts/watch-cursor.js`. The Watcher detects Cursor via System Events, starts the real Electron binary (not the npm shim), and the Meter writes `.meter.pid` so it won’t double-launch.
+This installs a macOS LaunchAgent (or Linux autostart entry) that runs `scripts/watch-cursor.js`. The Watcher starts the Meter when Cursor opens and **quits the Meter when Cursor closes**. It uses System Events to detect Cursor, spawns the real Electron binary (not the npm shim), and relies on `.meter.pid` so it won’t double-launch.
 
 ```bash
 npm run uninstall-autolaunch
@@ -69,7 +69,7 @@ The app copies the DB to a temp file (avoids WAL locks), reads `cursorAuth/acces
 - **Face DTO / copy** — `src/lib/face.js` + `src/lib/face-copy.js` (single IPC shape; Auto/API wording)
 - **Paint** — `src/lib/paint.js` (`drawMeterFace`); renderer only animates needles
 - **Physics** — `src/lib/gauge.js` `stepNeedle` via preload (no renderer fallback)
-- **Watcher** — `src/lib/watcher.js` (`ensureMeterRunning`)
+- **Watcher** — `src/lib/watcher.js` (`syncMeterWithCursor` — start on open, stop on close)
 
 ## Domain glossary
 

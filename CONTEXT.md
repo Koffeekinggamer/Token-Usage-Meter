@@ -37,5 +37,5 @@ A visible indication that the Meter cannot produce a fresh reading (missing sign
 _Avoid_: Crash, error toast, dialog
 
 **Watcher**:
-The background process that starts the Meter when the Cursor app is running.
+The background process that starts the Meter when the Cursor app opens and stops the Meter when Cursor closes.
 _Avoid_: Autostart service, daemon, LaunchAgent (implementation detail)

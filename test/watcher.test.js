@@ -2,45 +2,70 @@
 
 const { describe, it } = require("node:test");
 const assert = require("node:assert/strict");
-const { ensureMeterRunning } = require("../src/lib/watcher");
+const { syncMeterWithCursor } = require("../src/lib/watcher");
 
-describe("ensureMeterRunning", () => {
-  it("does nothing when Cursor is down", () => {
+describe("syncMeterWithCursor", () => {
+  it("stays idle when Cursor and Meter are both down", () => {
     let started = 0;
-    const result = ensureMeterRunning({
+    let stopped = 0;
+    const result = syncMeterWithCursor({
       isCursorRunning: () => false,
       isMeterRunning: () => false,
       startMeter: () => {
         started += 1;
       },
+      stopMeter: () => {
+        stopped += 1;
+      },
     });
-    assert.equal(result, "cursor-down");
+    assert.equal(result, "idle");
     assert.equal(started, 0);
+    assert.equal(stopped, 0);
   });
 
-  it("starts the Meter when Cursor is up and Meter is down", () => {
+  it("starts the Meter when Cursor opens", () => {
     let started = 0;
-    const result = ensureMeterRunning({
+    const result = syncMeterWithCursor({
       isCursorRunning: () => true,
       isMeterRunning: () => false,
       startMeter: () => {
         started += 1;
       },
+      stopMeter: () => {},
     });
     assert.equal(result, "started");
     assert.equal(started, 1);
   });
 
-  it("does not double-launch when Meter is already running", () => {
+  it("stops the Meter when Cursor closes", () => {
+    let stopped = 0;
+    const result = syncMeterWithCursor({
+      isCursorRunning: () => false,
+      isMeterRunning: () => true,
+      startMeter: () => {},
+      stopMeter: () => {
+        stopped += 1;
+      },
+    });
+    assert.equal(result, "stopped");
+    assert.equal(stopped, 1);
+  });
+
+  it("leaves a running Meter alone while Cursor stays open", () => {
     let started = 0;
-    const result = ensureMeterRunning({
+    let stopped = 0;
+    const result = syncMeterWithCursor({
       isCursorRunning: () => true,
       isMeterRunning: () => true,
       startMeter: () => {
         started += 1;
       },
+      stopMeter: () => {
+        stopped += 1;
+      },
     });
     assert.equal(result, "already-running");
     assert.equal(started, 0);
+    assert.equal(stopped, 0);
   });
 });

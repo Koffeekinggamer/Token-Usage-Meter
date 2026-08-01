@@ -1,27 +1,45 @@
 "use strict";
 
 /**
- * Pure Watcher policy: when Cursor is up and the Meter is down, start it.
- * Process/OS details sit behind injectable adapters.
+ * Sync the Meter with Cursor: start when Cursor opens, stop when Cursor closes.
  *
  * @param {{
  *   isCursorRunning: () => boolean,
  *   isMeterRunning: () => boolean,
  *   startMeter: () => void,
+ *   stopMeter: () => void,
  * }} adapters
- * @returns {'started'|'already-running'|'cursor-down'}
+ * @returns {'started'|'stopped'|'already-running'|'idle'}
  */
-function ensureMeterRunning(adapters) {
-  if (!adapters.isCursorRunning()) {
-    return "cursor-down";
+function syncMeterWithCursor(adapters) {
+  const cursorUp = adapters.isCursorRunning();
+  const meterUp = adapters.isMeterRunning();
+
+  if (cursorUp && !meterUp) {
+    adapters.startMeter();
+    return "started";
   }
 
-  if (adapters.isMeterRunning()) {
+  if (!cursorUp && meterUp) {
+    adapters.stopMeter();
+    return "stopped";
+  }
+
+  if (cursorUp && meterUp) {
     return "already-running";
   }
 
-  adapters.startMeter();
-  return "started";
+  return "idle";
 }
 
-module.exports = { ensureMeterRunning };
+/** @deprecated use syncMeterWithCursor */
+function ensureMeterRunning(adapters) {
+  const result = syncMeterWithCursor({
+    ...adapters,
+    stopMeter: adapters.stopMeter || (() => {}),
+  });
+  if (result === "idle" || result === "stopped") return "cursor-down";
+  return result;
+}
+
+module.exports = { syncMeterWithCursor, ensureMeterRunning };
