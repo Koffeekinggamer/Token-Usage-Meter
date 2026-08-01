@@ -1,6 +1,6 @@
 "use strict";
 
-const { buildGaugeModel } = require("./gauge");
+const { buildFace } = require("./face");
 
 /**
  * @typedef {import('./reading').Reading} Reading
@@ -21,7 +21,6 @@ function emptyMeterState() {
 
 /**
  * Reduce a Reading producer event into Meter display state.
- * Keeps last-good reading on fault; never zeros the needle for a transient miss.
  * @param {MeterState|null|undefined} previous
  * @param {{ ok: true, reading: Reading } | { ok: false, fault: Fault }} event
  * @returns {MeterState}
@@ -53,70 +52,14 @@ function reduceMeterState(previous, event) {
 }
 
 /**
- * @param {Fault|null} fault
- */
-function faultSubtitle(fault) {
-  if (!fault) return "Unavailable";
-  switch (fault.kind) {
-    case "missing-db":
-      return "No Cursor DB";
-    case "unsigned-in":
-      return "Sign in";
-    case "http":
-      return "API error";
-    case "parse":
-      return "Bad data";
-    default:
-      return "Fault";
-  }
-}
-
-/**
- * Build the face view the Meter renderer paints.
  * @param {MeterState} state
  */
 function buildFaceView(state) {
-  if (!state.reading) {
-    return {
-      cursorTargetAngle: -120,
-      otherTargetAngle: -120,
-      targetAngle: -120,
-      cursorColor: "#c23b22",
-      otherColor: "#1c1917",
-      color: "#c23b22",
-      otherArcColor: "#c23b22",
-      label: "!",
-      cursorLabel: "!",
-      otherLabel: "!",
-      legend: "",
-      plan: faultSubtitle(state.fault),
-      subtitle: faultSubtitle(state.fault),
-      account: "",
-      showingLastGood: false,
-      hasFault: true,
-      percent: 0,
-      cursorPercent: 0,
-      otherPercent: 0,
-    };
-  }
-
-  const model = buildGaugeModel(state.reading);
-  const plan = state.showingLastGood
-    ? `${model.plan || "Plan"} · held`
-    : model.plan || "";
-
-  return {
-    ...model,
-    plan,
-    subtitle: plan || model.legend,
-    showingLastGood: state.showingLastGood,
-    hasFault: Boolean(state.fault),
-  };
+  return buildFace(state);
 }
 
 module.exports = {
   emptyMeterState,
   reduceMeterState,
-  faultSubtitle,
   buildFaceView,
 };

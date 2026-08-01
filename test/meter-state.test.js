@@ -57,18 +57,18 @@ describe("reduceMeterState", () => {
     assert.equal(next.fault.kind, "unsigned-in");
   });
 
-  it("does not snap percent to zero on transient fault", () => {
+  it("buildFaceView exposes Face DTO without snap-to-zero", () => {
     const good = reduceMeterState(emptyMeterState(), { ok: true, reading });
     const held = reduceMeterState(good, {
       ok: false,
       fault: { kind: "http", message: "boom" },
     });
     const face = buildFaceView(held);
-    assert.equal(face.cursorLabel, "30");
-    assert.equal(face.otherLabel, "55");
+    assert.equal(face.cursor.label, "30");
+    assert.equal(face.other.label, "55");
     assert.match(face.plan, /held/);
     assert.equal(face.hasFault, true);
-    assert.notEqual(face.cursorTargetAngle, -120);
+    assert.notEqual(face.cursor.targetAngle, -120);
   });
 });
 
@@ -79,15 +79,13 @@ describe("buildFaceView", () => {
       fault: null,
       showingLastGood: false,
     });
-    assert.equal(face.cursorLabel, "30");
-    assert.equal(face.otherLabel, "55");
-    assert.equal(face.legend, "Auto · API");
+    assert.equal(face.cursor.label, "30");
+    assert.equal(face.other.label, "55");
+    assert.equal(face.legend.cursor, "Auto");
     assert.equal(face.plan, "pro");
-    assert.equal(face.cursorPercent, 30);
-    assert.equal(face.otherPercent, 55);
-    assert.equal(face.cursorColor, CURSOR_NEEDLE_COLOR);
-    assert.equal(face.cursorTargetAngle, -120 + (240 * 30) / 100);
-    assert.equal(face.otherTargetAngle, -120 + (240 * 55) / 100);
+    assert.equal(face.cursor.color, CURSOR_NEEDLE_COLOR);
+    assert.equal(face.cursor.targetAngle, -120 + (240 * 30) / 100);
+    assert.equal(face.other.targetAngle, -120 + (240 * 55) / 100);
   });
 
   it("renders cold fault without a reading", () => {
@@ -96,9 +94,9 @@ describe("buildFaceView", () => {
       fault: { kind: "unsigned-in", message: "x" },
       showingLastGood: false,
     });
-    assert.equal(face.cursorLabel, "!");
+    assert.equal(face.cursor.label, "!");
     assert.equal(face.plan, "Sign in");
-    assert.equal(face.cursorTargetAngle, -120);
-    assert.equal(face.otherTargetAngle, -120);
+    assert.equal(face.cursor.targetAngle, -120);
+    assert.equal(face.other.targetAngle, -120);
   });
 });

@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div id="shell" title="Blue Auto = Cursor models · Dark API = other models · drag · double-click refresh">
+    <div id="shell" title="">
       <canvas id="gauge" width="200" height="200"></canvas>
       <div id="meta">
         <div id="label" aria-live="polite">
@@ -19,10 +19,10 @@
           <span class="sep">·</span>
           <span id="otherPct" class="pct other">—</span>
         </div>
-        <div id="legend">
-          <span class="leg cursor">Auto</span>
+        <div id="legend" hidden>
+          <span id="legendCursor" class="leg cursor"></span>
           <span class="sep">·</span>
-          <span class="leg other">API</span>
+          <span id="legendOther" class="leg other"></span>
         </div>
         <div id="plan"></div>
       </div>

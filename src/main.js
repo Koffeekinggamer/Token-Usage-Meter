@@ -44,7 +44,7 @@ function createWindow() {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
-      // preload requires ./lib/gauge for shared needle physics
+      // preload requires lib modules (gauge, paint, face)
       sandbox: false,
     },
   });
@@ -65,11 +65,7 @@ function createWindow() {
 function publishFace() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
   const face = buildFaceView(meterState);
-  mainWindow.webContents.send("meter:face", {
-    ok: Boolean(meterState.reading) && !meterState.fault,
-    ...face,
-    faultKind: meterState.fault?.kind ?? null,
-  });
+  mainWindow.webContents.send("meter:face", face);
 }
 
 async function refreshUsage() {

@@ -12,8 +12,10 @@ const {
 const {
   stepNeedle,
   colorForPercent,
-  buildGaugeModel,
+  dualPercents,
+  CURSOR_NEEDLE_COLOR,
 } = require("../src/lib/gauge");
+const { faceFromReading } = require("../src/lib/face");
 
 const fixture = JSON.parse(
   fs.readFileSync(
@@ -100,23 +102,26 @@ describe("needle math", () => {
     assert.equal(colorForPercent(99), "#c23b22");
   });
 
-  it("builds a dual-needle gauge model", () => {
-    const { CURSOR_NEEDLE_COLOR } = require("../src/lib/gauge");
-    const model = buildGaugeModel(
-      {
-        percent: 42,
-        autoPercentUsed: 30,
-        apiPercentUsed: 55,
-        membershipType: "pro",
-        email: "a@b.c",
-      },
-      { cursor: { angle: -10, velocity: 0 } }
-    );
-    assert.equal(model.label, "30 · 55");
-    assert.equal(model.cursorColor, CURSOR_NEEDLE_COLOR);
-    assert.equal(model.cursorPercent, 30);
-    assert.equal(model.otherPercent, 55);
-    assert.equal(model.account, "a@b.c");
+  it("resolves dual percents for Cursor vs other models", () => {
+    const dual = dualPercents({
+      percent: 42,
+      autoPercentUsed: 30,
+      apiPercentUsed: 55,
+    });
+    assert.equal(dual.cursorPercent, 30);
+    assert.equal(dual.otherPercent, 55);
+    const face = faceFromReading({
+      percent: 42,
+      autoPercentUsed: 30,
+      apiPercentUsed: 55,
+      membershipType: "pro",
+      email: "a@b.c",
+      isUnlimited: false,
+    });
+    assert.equal(face.cursor.label, "30");
+    assert.equal(face.other.label, "55");
+    assert.equal(face.cursor.color, CURSOR_NEEDLE_COLOR);
+    assert.equal(face.account, "a@b.c");
   });
 });
 

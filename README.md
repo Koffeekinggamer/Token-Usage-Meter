@@ -64,10 +64,12 @@ The app copies the DB to a temp file (avoids WAL locks), reads `cursorAuth/acces
 
 ## Reliability
 
-- **Reading** production lives in `src/lib/reading.js` (signed-in account → plan usage)
-- **Last-good reading** + **fault state** are reduced in `src/lib/meter-state.js` — a failed refresh keeps the previous needle position and marks a fault
-- Needle physics are shared via `src/lib/gauge.js` (preload → renderer)
-- Watcher policy (`ensureMeterRunning`) is in `src/lib/watcher.js` so it can’t double-launch
+- **Reading** — `src/lib/reading.js` (signed-in account → plan usage)
+- **Meter state** — `src/lib/meter-state.js` (last-good reading + fault)
+- **Face DTO / copy** — `src/lib/face.js` + `src/lib/face-copy.js` (single IPC shape; Auto/API wording)
+- **Paint** — `src/lib/paint.js` (`drawMeterFace`); renderer only animates needles
+- **Physics** — `src/lib/gauge.js` `stepNeedle` via preload (no renderer fallback)
+- **Watcher** — `src/lib/watcher.js` (`ensureMeterRunning`)
 
 ## Domain glossary
 

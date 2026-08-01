@@ -62,83 +62,10 @@ function dualPercents(usage) {
   };
 }
 
-/**
- * Build render model for the dual-needle overlay face.
- * @param {{
- *   percent?: number,
- *   autoPercentUsed?: number|null,
- *   apiPercentUsed?: number|null,
- *   email?: string|null,
- *   membershipType?: string|null,
- *   isUnlimited?: boolean,
- * }} usage
- * @param {{
- *   cursor?: { angle: number, velocity: number },
- *   other?: { angle: number, velocity: number },
- * }} [needles]
- */
-function buildGaugeModel(usage, needles = {}) {
-  const cursorNeedle = needles.cursor || { angle: -120, velocity: 0 };
-  const otherNeedle = needles.other || { angle: -120, velocity: 0 };
-  const { cursorPercent, otherPercent } = dualPercents(usage);
-
-  if (usage.isUnlimited) {
-    return {
-      percent: 0,
-      cursorPercent: 0,
-      otherPercent: 0,
-      cursorTargetAngle: -120,
-      otherTargetAngle: -120,
-      targetAngle: -120,
-      needleAngle: cursorNeedle.angle,
-      needleVelocity: cursorNeedle.velocity,
-      cursorColor: CURSOR_NEEDLE_COLOR,
-      otherColor: OTHER_NEEDLE_COLOR,
-      color: CURSOR_NEEDLE_COLOR,
-      otherArcColor: "#2f6f4e",
-      label: "∞",
-      cursorLabel: "∞",
-      otherLabel: "∞",
-      legend: "Auto · API",
-      plan: "Unlimited",
-      subtitle: "Unlimited",
-      account: usage.email || "",
-    };
-  }
-
-  const cursorRound = Math.round(cursorPercent);
-  const otherRound = Math.round(otherPercent);
-
-  return {
-    percent: Number(usage.percent) || 0,
-    cursorPercent,
-    otherPercent,
-    cursorTargetAngle: percentToNeedleAngle(cursorPercent),
-    otherTargetAngle: percentToNeedleAngle(otherPercent),
-    targetAngle: percentToNeedleAngle(cursorPercent),
-    needleAngle: cursorNeedle.angle,
-    needleVelocity: cursorNeedle.velocity,
-    otherNeedleAngle: otherNeedle.angle,
-    otherNeedleVelocity: otherNeedle.velocity,
-    cursorColor: CURSOR_NEEDLE_COLOR,
-    otherColor: OTHER_NEEDLE_COLOR,
-    color: CURSOR_NEEDLE_COLOR,
-    otherArcColor: colorForPercent(otherPercent),
-    label: `${cursorRound} · ${otherRound}`,
-    cursorLabel: String(cursorRound),
-    otherLabel: String(otherRound),
-    legend: "Auto · API",
-    plan: usage.membershipType || "",
-    subtitle: usage.membershipType || "Auto · API",
-    account: usage.email || "",
-  };
-}
-
 module.exports = {
   stepNeedle,
   colorForPercent,
   dualPercents,
-  buildGaugeModel,
   percentToNeedleAngle,
   CURSOR_NEEDLE_COLOR,
   OTHER_NEEDLE_COLOR,
