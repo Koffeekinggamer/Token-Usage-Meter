@@ -1,0 +1,54 @@
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+}
+
+body:active {
+  cursor: grabbing;
+}
+
+#shell {
+  position: relative;
+  width: 200px;
+  height: 200px;
+}
+
+#gauge {
+  display: block;
+  width: 200px;
+  height: 200px;
+}
+
+#meta {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 118px;
+  text-align: center;
+  pointer-events: none;
+}
+
+#label {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #1c1917;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+#subtitle {
+  margin-top: 2px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #57534e;
+}
